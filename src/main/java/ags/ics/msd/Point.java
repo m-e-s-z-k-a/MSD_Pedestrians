@@ -10,12 +10,15 @@ public class Point {
     public int type;
     public int staticField;
     public boolean isPedestrian;
+    public int neighbourhood;
+    boolean blocked = false;
 
     public Point() {
         type=0;
         staticField = 100000;
-        neumann_neighbors= new ArrayList<Point>();
-        moore_neighbors = new ArrayList<Point>();
+        neumann_neighbors= new ArrayList<>();
+        moore_neighbors = new ArrayList<>();
+
     }
 
     public void clear() {
@@ -25,22 +28,79 @@ public class Point {
 
     public boolean calcStaticField() {
         int minimum = this.staticField;
-        for (Point nei : this.moore_neighbors)
-        {
-            if (nei.staticField + 1< minimum)
-            {
-                minimum = nei.staticField + 1;
+        if (this.neighbourhood == 0) {
+            for (Point nei : this.moore_neighbors) {
+                if (nei.staticField + 1 < minimum) {
+                    minimum = nei.staticField + 1;
+                }
             }
+            if (minimum != this.staticField) {
+                this.staticField = minimum;
+                return true;
+            }
+            return false;
         }
-        if (minimum != this.staticField)
+        else
         {
-            this.staticField = minimum;
-            return true;
+            for (Point nei : this.neumann_neighbors) {
+                if (nei.staticField + 1 < minimum) {
+                    minimum = nei.staticField + 1;
+                }
+            }
+            if (minimum != this.staticField) {
+                this.staticField = minimum;
+                return true;
+            }
+            return false;
         }
-        return false;
     }
 
-    public void move(){
+    public void move()
+    {
+        if (this.isPedestrian == true)
+        {
+            int min = 100001;
+            Point new_pos = null;
+            if (this.neighbourhood == 0) {
+                for (Point nei : this.moore_neighbors) {
+                    if ((nei.type == 0 || nei.type == 2) && nei.staticField < min) {
+                        min = nei.staticField;
+                        new_pos = nei;
+                    }
+                }
+                if (new_pos != null) {
+                    this.type = 0;
+                    if (new_pos.type == 0) {
+                        new_pos.isPedestrian = true;
+                        new_pos.type = 3;
+                    }
+                    new_pos.blocked = true;
+                    this.isPedestrian = false;
+                }
+                this.blocked = true;
+            }
+            else
+            {
+                for (Point nei : this.neumann_neighbors) {
+                    if ((nei.type == 0 || nei.type == 2) && nei.staticField < min) {
+                        min = nei.staticField;
+                        new_pos = nei;
+                    }
+                }
+                if (new_pos != null) {
+                    this.type = 0;
+                    if (new_pos.type == 0)
+                    {
+                        new_pos.isPedestrian = true;
+                        new_pos.type = 3;
+                    }
+
+                    new_pos.blocked = true;
+                    this.isPedestrian = false;
+                }
+                this.blocked = true;
+            }
+        }
     }
 
     public void setStaticField()
@@ -56,6 +116,7 @@ public class Point {
     public void addMooreNeighbor(Point nei) {
         moore_neighbors.add(nei);
     }
+
 
 
     public void addNeumannNeighbor(Point nei) {

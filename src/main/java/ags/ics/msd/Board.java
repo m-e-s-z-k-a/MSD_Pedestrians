@@ -16,7 +16,7 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
     private Point[][] points = {};
     private int size = 10;
     public int editType=0;
-
+    private final int neighbourhood = 0;
 
     public Board(int length, int height) {
         addMouseListener(this);
@@ -27,6 +27,10 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
     }
 
     public void iteration() {
+        for (int x = 1; x < points.length - 1; ++x)
+            for (int y = 1; y < points[x].length - 1; ++y)
+                points[x][y].blocked = false;
+
         for (int x = 1; x < points.length - 1; ++x)
             for (int y = 1; y < points[x].length - 1; ++y)
                 points[x][y].move();
@@ -46,9 +50,10 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
         points = new Point[length][height];
 
         for (int x = 0; x < points.length; ++x)
-            for (int y = 0; y < points[x].length; ++y)
+            for (int y = 0; y < points[x].length; ++y) {
                 points[x][y] = new Point();
-
+                points[x][y].neighbourhood = this.neighbourhood;
+            }
         for (int x = 1; x < points.length-1; ++x) {
             for (int y = 1; y < points[x].length-1; ++y)
             {
@@ -77,14 +82,44 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
                 if (points[x][y].getType() == 2)
                 {
                     points[x][y].setStaticField();
-                    for (Point nei : points[x][y].neumann_neighbors)
+                    if (this.neighbourhood == 1)
+                    {
+                        for (Point nei : points[x][y].neumann_neighbors)
+                        {
+                            toCheck.add(nei);
+                        }
+                    }
+                    else
+                    {
+                        for (Point nei : points[x][y].moore_neighbors)
+                        {
+                            toCheck.add(nei);
+                        }
+                    }
+                }
+            }
+        }
+        while (toCheck.size() != 0)
+        {
+            if (toCheck.get(0).calcStaticField())
+            {
+                if (this.neighbourhood == 1)
+                {
+                    for (Point nei : toCheck.get(0).neumann_neighbors)
+                    {
+                        toCheck.add(nei);
+                    }
+                }
+                else
+                {
+                    for (Point nei : toCheck.get(0).moore_neighbors)
                     {
                         toCheck.add(nei);
                     }
                 }
             }
+            toCheck.remove(0);
         }
-        
 
 
 
